@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="202" height="40" viewBox="0 0 202 40" role="img" aria-label="All systems operational" direction="ltr" font-family="Noto Sans,Inter,system-ui,-apple-system,BlinkMacSystemFont,sans-serif" data-state="operational" data-variant="compact" data-theme="dark" data-palette="inbrief" data-pulse="off">
+<title>All systems operational</title>
+<style>
+.ib-surface{fill:#1B2421}
+.ib-foreground{fill:#F0F7F4}
+.ib-muted{fill:#9EAAA6}
+.ib-muted-stroke{stroke:#31403B}
+.ib-accent{fill:#67ca98}
+.ib-accent-stroke{stroke:#67ca98}
+.ib-outline{stroke:#67ca98;stroke-opacity:.62}
+</style>
+<rect class="ib-surface ib-outline" x="0.75" y="0.75" width="200.5" height="38.5" rx="12" stroke-width="1.5"/>
+<g aria-hidden="true">
+<circle class="ib-accent" cx="22" cy="20" r="9" opacity=".12"/>
+<circle class="ib-accent-stroke" cx="22" cy="20" r="8.5" fill="none" stroke-width="1" opacity=".28"/>
+<circle class="ib-accent" cx="22" cy="20" r="4"/>
+</g>
+<text class="ib-accent" x="115.5" y="25" font-size="14" font-weight="500" text-anchor="middle" direction="ltr" unicode-bidi="plaintext">All systems operational</text>
+</svg>

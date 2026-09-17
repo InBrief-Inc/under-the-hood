@@ -41,6 +41,12 @@ PAGE_TEMPLATE = """<!doctype html>
 <meta property="og:url" content="{url}">
 <meta name="twitter:card" content="summary">
 <link rel="alternate" type="application/rss+xml" title="{site_title}" href="{site_url}/feed.xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#eef2f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1419" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Noto+Serif:wght@600;700&display=swap" rel="stylesheet">
 {style}
 </head>
 <body>
@@ -50,13 +56,15 @@ PAGE_TEMPLATE = """<!doctype html>
 </header>
 <main>
 <article>
+<a class="back" href="/">&larr; All articles</a>
 <h1>{title}</h1>
-<p class="meta">{date_human}</p>
+<p class="meta">{date_human}<span class="dot">&middot;</span>{reading_min} min read</p>
 {body}
 </article>
 </main>
 <footer class="site">
 <p>Written while building <a href="https://inbrief.sh/?utm_source=blog&amp;utm_medium=footer&amp;utm_campaign={slug}">InBrief</a>, a status page and monitoring tool priced per feature. Code and commands for this article are in the <a href="https://github.com/InBrief-Inc/under-the-hood/tree/main/{folder}">under-the-hood</a> repository.</p>
+{proof}
 </footer>
 </body>
 </html>
@@ -71,6 +79,12 @@ INDEX_TEMPLATE = """<!doctype html>
 <meta name="description" content="{site_description}">
 <link rel="canonical" href="{site_url}/">
 <link rel="alternate" type="application/rss+xml" title="{site_title}" href="{site_url}/feed.xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#eef2f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1419" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&family=Noto+Serif:wght@600;700&display=swap" rel="stylesheet">
 {style}
 </head>
 <body>
@@ -85,33 +99,120 @@ INDEX_TEMPLATE = """<!doctype html>
 </main>
 <footer class="site">
 <p>Written while building <a href="https://inbrief.sh/?utm_source=blog&amp;utm_medium=footer&amp;utm_campaign=index">InBrief</a>, a status page and monitoring tool priced per feature.</p>
+{proof}
 </footer>
 </body>
 </html>
 """
 
+# The widget and badge are the product's own renders (see under-the-hood's
+# blog-design notes), embedded as static same-origin assets so nothing here
+# depends on a live account. utm_campaign is filled in per page.
+PROOF_TEMPLATE = """<div class="proof">
+<div class="proof-embed">
+<iframe class="ib-embed light" src="/assets/widget-light.html" title="InBrief status widget" loading="lazy" scrolling="no" width="300" height="150"></iframe>
+<iframe class="ib-embed dark" src="/assets/widget-dark.html" title="InBrief status widget" loading="lazy" scrolling="no" width="300" height="150"></iframe>
+</div>
+<div class="proof-embed">
+<img class="ib-embed light" src="/assets/badges/badge-light.svg" alt="InBrief status badge: all systems operational" width="202" height="40" loading="lazy">
+<img class="ib-embed dark" src="/assets/badges/badge-dark.svg" alt="InBrief status badge: all systems operational" width="202" height="40" loading="lazy">
+</div>
+<p class="proof-caption">InBrief's status widget and badge, the same ones a status page embeds on its own site. <a href="https://demo.inbrief.sh/?utm_source=blog&amp;utm_medium=footer&amp;utm_campaign={campaign}">See the live public demo</a>.</p>
+</div>"""
+
 STYLE = """<style>
-:root{color-scheme:light}
-*{box-sizing:border-box}
-body{margin:0;background:#fff;color:#111;font-family:"Noto Sans",-apple-system,Helvetica,Arial,sans-serif;line-height:1.6}
-h1,h2,h3{font-family:"Noto Serif",Georgia,serif;font-weight:600;line-height:1.25}
-h1{font-size:2rem;margin:0 0 .3em}
-h2{font-size:1.4rem;margin:1.6em 0 .5em}
-a{color:#0b5fff}
-a.home{color:#111;text-decoration:none;font-family:"Noto Serif",Georgia,serif;font-weight:600;font-size:1.3rem}
-header.site,footer.site,main{max-width:680px;margin:0 auto;padding:0 20px}
-header.site{padding-top:40px}
-.tag{color:#555;margin-top:.3em}
-.meta{color:#777;font-size:.9rem;margin-top:0}
-article p,article li{font-size:1.05rem}
-article pre{background:#f4f4f4;border-radius:6px;padding:12px 14px;overflow-x:auto;font-family:"SFMono-Regular",Consolas,monospace;font-size:.9rem}
-article code{font-family:"SFMono-Regular",Consolas,monospace;background:#f4f4f4;padding:.1em .3em;border-radius:4px}
-article pre code{background:none;padding:0}
-ul.index{list-style:none;margin:2em 0;padding:0}
-ul.index li{margin-bottom:1.4em}
-ul.index a{font-family:"Noto Serif",Georgia,serif;font-size:1.2rem;text-decoration:none}
-ul.index p{margin:.2em 0 0;color:#444}
-footer.site{color:#777;font-size:.9rem;margin:3em auto 3em;border-top:1px solid #eee;padding-top:1.2em}
+:root{color-scheme:light dark}
+*,*::before,*::after{box-sizing:border-box}
+
+:root{
+  --bg: light-dark(#eef2f3,#0d1419);
+  --surface: light-dark(#ffffff,#151e25);
+  --text: light-dark(#121a20,#e9eef1);
+  --muted: light-dark(#52616b,#9eacb6);
+  --faint: light-dark(#5c6c76,#8093a0);
+  --line: light-dark(#d8e0e4,#283640);
+  --line-strong: light-dark(#bdc9cf,#394b57);
+  --brand: light-dark(#1b7a4f,#4fc292);
+  --brand-soft: light-dark(#e4efe9,#15261f);
+  --code-bg: light-dark(#f1f4f5,#111820);
+  --shadow: light-dark(0 1px 2px rgba(19,26,32,.06), 0 1px 3px rgba(0,0,0,.4));
+}
+
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:"Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Noto Serif",Georgia,serif;font-weight:600;line-height:1.2;letter-spacing:-.01em;color:var(--text)}
+h1{font-size:2.25rem;margin:.2em 0 .4em}
+h2{font-size:1.5rem;margin:1.8em 0 .6em;padding-top:.7em;border-top:1px solid var(--line)}
+h3{font-size:1.15rem;margin:1.4em 0 .4em}
+
+a{color:var(--brand);text-decoration:underline;text-underline-offset:2px;text-decoration-color:color-mix(in srgb, var(--brand) 40%, transparent)}
+a:hover{text-decoration-color:currentColor}
+a:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:2px}
+
+header.site,footer.site,main{max-width:700px;margin:0 auto;padding-left:20px;padding-right:20px}
+header.site{padding-top:48px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+a.home{display:inline-block;color:var(--text);text-decoration:none;font-family:"Noto Serif",Georgia,serif;font-weight:700;font-size:1.4rem;letter-spacing:-.01em}
+a.home:hover{color:var(--brand)}
+.tag{color:var(--muted);margin:.4em 0 0;font-size:1.02rem}
+
+main{padding-top:40px;padding-bottom:20px}
+
+a.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:.9rem;margin-bottom:1.8em}
+a.back:hover{color:var(--brand)}
+
+.meta{color:var(--faint);font-size:.9rem;margin:0 0 2em;display:flex;gap:.5em;align-items:center}
+.meta .dot{opacity:.6}
+
+article p,article li{font-size:1.08rem;color:var(--text)}
+article ul,article ol{padding-left:1.3em}
+article li{margin:.3em 0}
+article strong{font-weight:650}
+
+article pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;font-size:.88rem;line-height:1.55}
+article code{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;background:var(--code-bg);padding:.15em .4em;border-radius:4px;font-size:.9em}
+article pre code{background:none;padding:0;font-size:1em}
+
+article blockquote{margin:1.4em 0;padding:.2em 1.2em;border-left:3px solid var(--brand);color:var(--muted)}
+
+article table{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.95rem}
+article th,article td{border:1px solid var(--line);padding:.5em .7em;text-align:left}
+article th{background:var(--brand-soft);font-family:"Noto Serif",Georgia,serif}
+
+article hr{border:none;border-top:1px solid var(--line);margin:2.2em 0}
+
+ul.index{list-style:none;margin:2em 0;padding:0;display:flex;flex-direction:column;gap:14px}
+a.card{display:block;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:22px 24px;text-decoration:none;box-shadow:var(--shadow);transition:border-color .15s ease, transform .15s ease}
+a.card:hover{border-color:var(--brand);transform:translateY(-1px)}
+a.card:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.idate{display:block;color:var(--faint);font-size:.85rem;margin-bottom:.35em}
+.ititle{display:block;font-family:"Noto Serif",Georgia,serif;font-size:1.25rem;font-weight:600;color:var(--text)}
+a.card:hover .ititle{color:var(--brand)}
+.idesc{display:block;color:var(--muted);font-size:1rem;line-height:1.55;margin-top:.45em}
+
+footer.site{color:var(--faint);font-size:.9rem;margin-top:3em;border-top:1px solid var(--line);padding-top:24px;padding-bottom:48px}
+footer.site a{color:var(--muted);text-decoration:underline;text-decoration-color:var(--line-strong)}
+footer.site a:hover{color:var(--brand)}
+
+.proof{margin-top:1.4em;padding-top:1.3em;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.proof-embed{flex:0 0 auto;line-height:0}
+.proof-embed iframe{border:0}
+.proof-embed img{display:block;height:40px;width:auto}
+.proof .dark{display:none}
+@media (prefers-color-scheme:dark){.proof .light{display:none}.proof .dark{display:block}}
+.proof-caption{flex-basis:100%;margin:0;color:var(--faint);font-size:.85rem;line-height:1.5}
+.proof-caption a{color:var(--muted);text-decoration-color:var(--line-strong)}
+.proof-caption a:hover{color:var(--brand)}
+
+@media (max-width:600px){
+  h1{font-size:1.7rem}
+  header.site{padding-top:32px;padding-bottom:22px}
+  main{padding-top:28px}
+  a.card{padding:18px}
+}
 </style>"""
 
 
@@ -138,6 +239,7 @@ def parse_article(path: pathlib.Path) -> dict:
         body_md.strip(), extensions=["fenced_code", "tables"]
     )
     meta["folder"] = path.parent.name
+    meta["reading_min"] = max(1, round(len(body_md.split()) / 220))
     return meta
 
 
@@ -152,25 +254,29 @@ def build() -> None:
 
     for art in articles:
         url = f"{SITE_URL}/articles/{art['slug']}.html"
-        date_human = datetime.date.fromisoformat(art["date"]).strftime("%d %B %Y")
+        art["date_human"] = datetime.date.fromisoformat(art["date"]).strftime("%d %B %Y")
         html = PAGE_TEMPLATE.format(
             title=art["title"],
             description=art["description"],
             url=url,
             body=art["body_html"],
-            date_human=date_human,
+            date_human=art["date_human"],
+            reading_min=art["reading_min"],
             folder=art["folder"],
             slug=art["slug"],
             site_title=SITE_TITLE,
             site_description=SITE_DESCRIPTION,
             site_url=SITE_URL,
             style=STYLE,
+            proof=PROOF_TEMPLATE.format(campaign=art["slug"]),
         )
         (articles_dir / f"{art['slug']}.html").write_text(html)
 
     items = "\n".join(
-        f'<li><a href="/articles/{a["slug"]}.html">{a["title"]}</a>'
-        f'<p>{a["description"]}</p></li>'
+        f'<li><a class="card" href="/articles/{a["slug"]}.html">'
+        f'<span class="idate">{a["date_human"]} &middot; {a["reading_min"]} min read</span>'
+        f'<span class="ititle">{a["title"]}</span>'
+        f'<span class="idesc">{a["description"]}</span></a></li>'
         for a in reversed(articles)
     )
     (DOCS / "index.html").write_text(
@@ -180,6 +286,7 @@ def build() -> None:
             site_description=SITE_DESCRIPTION,
             site_url=SITE_URL,
             style=STYLE,
+            proof=PROOF_TEMPLATE.format(campaign="index"),
         )
     )
 

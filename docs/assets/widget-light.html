@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>InBrief — service status</title>
+  <style>
+    
+    :root{--ib-bg:#ffffff;--ib-fg:#10201b;--ib-muted:#52645d;--ib-border:#b8c9c1;--ib-action-bg:#10201b;--ib-action-fg:#ffffff;--ib-operational:#176d4a;--ib-degraded:#92580e;--ib-maintenance:#2a5f8f;--ib-outage:#a33e38;--ib-unknown:#4f5b55;--ib-state:var(--ib-operational);font-family:'Noto Sans Widget',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light}
+    
+    *{box-sizing:border-box}html,body{margin:0;min-width:0;overflow:hidden;background:transparent;color:var(--ib-fg)}body{padding:6px}
+    .widget{width:min(100%,372px);margin:0;border:1px solid var(--ib-border);border-radius:14px;background:var(--ib-bg);box-shadow:0 4px 10px rgba(0,0,0,.08),0 14px 34px rgba(0,0,0,.16);overflow:hidden}
+    .content{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:start;gap:12px;padding:14px 12px 13px 14px;min-height:76px}
+    .status-icon{position:relative;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;margin-top:3px;background:var(--ib-state);color:var(--ib-bg);font-size:18px;line-height:1;font-weight:700}
+    .pulse .status-icon::after{content:"";position:absolute;inset:-1px;border:2px solid var(--ib-state);border-radius:inherit;animation:pulse 2.4s ease-out infinite}
+    .status-copy{min-width:0;min-height:44px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:start}
+    button.status-copy{width:100%;cursor:pointer;border-radius:6px}.status-title,.status-meta{display:block;max-width:100%;overflow-wrap:anywhere}.status-title{font-size:15.5px;line-height:1.35;font-weight:700;color:var(--ib-fg)}.status-meta{margin-top:4px;font-size:12.5px;line-height:1.4;color:var(--ib-muted)}
+    button.status-copy .status-title{position:relative;padding-inline-end:17px}
+    .chevron{position:absolute;inset-inline-end:2px;top:50%;width:7px;height:7px;margin-top:-6px;border-inline-end:2px solid var(--ib-muted);border-block-end:2px solid var(--ib-muted);transform:rotate(45deg);transition:transform .2s ease,margin-top .2s ease}
+    button.status-copy[aria-expanded="true"] .chevron{transform:rotate(225deg);margin-top:-2px}
+    button.status-copy:hover .chevron{border-color:var(--ib-fg)}
+    button.status-copy:hover .status-title{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}.status-copy:focus-visible,.dismiss:focus-visible,.footer-action:focus-visible{outline:2px solid var(--ib-state);outline-offset:2px}
+    .dismiss{width:44px;height:44px;display:grid;place-items:center;margin:-6px -4px 0 0;border:0;border-radius:8px;background:transparent;color:var(--ib-muted);font:400 27px/1 'Noto Sans Widget',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif,sans-serif;cursor:pointer}.dismiss:hover{background:rgba(127,127,127,.12);color:var(--ib-fg)}
+    .details{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .26s cubic-bezier(.3,.8,.3,1),opacity .18s ease,visibility 0s .26s}
+    .details.open{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .26s cubic-bezier(.3,.8,.3,1),opacity .2s ease .05s,visibility 0s}
+    .details-inner{min-height:0;overflow:hidden}.details-pad{padding-block:0 14px;padding-inline:58px 56px}
+    .event-summary,.details-meta{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.event-summary{color:var(--ib-fg)}.details-meta{margin-top:5px;color:var(--ib-muted)}
+    .footer-action{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:9px 16px;background:var(--ib-action-bg);color:var(--ib-action-fg);font-size:12px;line-height:1.2;font-weight:700;letter-spacing:.055em;text-align:center;text-decoration:none;text-transform:uppercase}.footer-action:hover{text-decoration:underline;text-underline-offset:3px}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @keyframes pulse{0%{transform:scale(.92);opacity:.45}70%,100%{transform:scale(1.45);opacity:0}}
+    @media(prefers-reduced-motion:reduce){.pulse .status-icon::after{animation:none}.details,.details.open,.chevron{transition:none}}
+    @media(max-width:360px){body{padding:3px}.content{padding-inline:12px 8px;gap:10px}.details-pad{padding-inline:54px 52px}}
+  </style>
+</head>
+<body>
+  <article class="widget pulse" data-state="operational" aria-live="polite">
+    <div class="content">
+      <span class="status-icon" aria-hidden="true">✓</span>
+      <div class="status-copy"><span class="status-title" id="ib-widget-title">All systems operational</span><span class="status-meta">Checked moments ago · 99.98% uptime · InBrief</span></div>
+      
+    </div>
+    
+    <a class="footer-action" href="https://inbrief.sh" target="_blank" rel="noopener noreferrer">View service status <span aria-hidden="true">↗</span></a>
+  </article>
+  <script>
+    (()=>{"use strict";
+      const view={"schemaVersion":1,"installationId":"emb_previewpreviewpreview","language":"en","direction":"ltr","visible":true,"refreshAfterSeconds":86400,"nextRefreshAt":null,"presentation":{"placement":"bottom_right","containerId":null,"size":"compact","theme":"light","palette":"inbrief","customColors":null,"pulse":true,"showUptime":true,"showFreshness":true,"showAttribution":true,"attribution":"InBrief","dismissible":false},"status":{"state":"operational","name":"InBrief","headline":"All systems operational","support":"Checked moments ago","pageUrl":"https://inbrief.sh","lastCheckedAt":"2026-01-01T11:59:30.000Z","uptime30d":"99.98%","event":null,"additionalEvents":0}};
+      const source="inbrief-widget-v1";
+      const eventId=view.status.event?.id||"";
+      const send=(type,extra={})=>parent.postMessage({source,type,installationId:view.installationId,...extra},"*");
+      const report=()=>send("resize",{visible:!document.body.hidden,eventId,width:Math.ceil(document.documentElement.scrollWidth),height:Math.ceil(document.body.getBoundingClientRect().height)});
+      const toggle=document.querySelector("[data-toggle]");
+      const toggleLabel=document.querySelector("[data-toggle-label]");
+      const details=document.getElementById("ib-widget-details");
+      const labels={"expand":"Expand status details","collapse":"Collapse status details"};
+      const isOpen=()=>!!details&&details.classList.contains("open");
+      const syncToggle=()=>{if(!toggle||!details)return;const label=isOpen()?labels.collapse:labels.expand;toggle.setAttribute("aria-expanded",String(isOpen()));toggle.setAttribute("aria-label",label+": "+(view.status.event?.title||view.status.headline));if(toggleLabel)toggleLabel.textContent=label};
+      const collapse=()=>{if(!toggle||!isOpen())return;details.classList.remove("open");syncToggle();toggle.focus();report()};
+      toggle?.addEventListener("click",()=>{if(!details)return;details.classList.toggle("open");syncToggle();report()});
+      document.addEventListener("keydown",event=>{if(event.key==="Escape")collapse()});
+      const dismissNow=()=>{document.body.hidden=true;send("dismiss",{eventId});report()};
+      document.querySelector("[data-dismiss]")?.addEventListener("click",()=>{const card=document.querySelector(".widget"),reduce=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(card&&!reduce){card.style.transition="opacity .18s ease,transform .18s ease";card.style.opacity="0";card.style.transform="translateY(6px)";setTimeout(dismissNow,190)}else dismissNow()});
+      if("ResizeObserver" in globalThis)new ResizeObserver(report).observe(document.body);else{addEventListener("resize",report);setTimeout(report,0)}report();
+      let timer,dueAt=0;
+      const pollMilliseconds=()=>Math.max(30,Math.min(86400,Number(view.refreshAfterSeconds)||300))*1000;
+      const nextDelay=()=>{const poll=pollMilliseconds(),transition=Date.parse(view.nextRefreshAt||"");if(!Number.isFinite(transition))return poll;const remaining=transition-Date.now();return Math.max(250,Math.min(poll,remaining))};
+      const arm=delay=>{clearTimeout(timer);dueAt=Date.now()+delay;if(!document.hidden)timer=setTimeout(()=>location.reload(),delay)};
+      const schedule=()=>arm(nextDelay());
+      document.addEventListener("visibilitychange",()=>{if(document.hidden)clearTimeout(timer);else if(dueAt&&Date.now()>=dueAt)location.reload();else if(dueAt)arm(dueAt-Date.now());else schedule()});
+      schedule();
+    })();
+  </script>
+</body>
+</html>
