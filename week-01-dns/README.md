@@ -101,4 +101,4 @@ A forgotten CNAME pointing at an already shut-down product surfaced here in a se
 
 That's the pattern underneath all five outages above, and the one from this September too: the record was never the hard part. Knowing what's behind it, and who else is depending on it staying true, is the whole job.
 
-If you want to see a status page running on a customer's own domain over exactly the CNAME described above, [Sakneen's is public](https://status.sakneen.com). InBrief itself is priced per feature, from $1 a month: [inbrief.sh](https://inbrief.sh/?utm_source=blog&utm_medium=article&utm_campaign=dns-without-the-confusion).
+InBrief itself is priced per feature, from $1 a month: [inbrief.sh](https://inbrief.sh/?utm_source=blog&utm_medium=article&utm_campaign=dns-without-the-confusion).
