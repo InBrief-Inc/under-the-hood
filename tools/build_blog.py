@@ -16,6 +16,7 @@ import datetime
 import html
 import pathlib
 import re
+import shutil
 
 import markdown
 
@@ -178,6 +179,8 @@ article pre code{background:none;padding:0;font-size:1em}
 
 article blockquote{margin:1.4em 0;padding:.2em 1.2em;border-left:3px solid var(--brand);color:var(--muted)}
 
+article img{max-width:100%;height:auto;display:block;margin:1.6em 0;border:1px solid var(--line);border-radius:10px}
+
 article table{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.95rem}
 article th,article td{border:1px solid var(--line);padding:.5em .7em;text-align:left}
 article th{background:var(--brand-soft);font-family:"Noto Serif",Georgia,serif}
@@ -271,6 +274,12 @@ def build() -> None:
             proof=PROOF_TEMPLATE.format(campaign=art["slug"]),
         )
         (articles_dir / f"{art['slug']}.html").write_text(html)
+
+        src_assets = ROOT / art["folder"] / "assets"
+        if src_assets.is_dir():
+            dest_assets = DOCS / "assets" / art["slug"]
+            shutil.rmtree(dest_assets, ignore_errors=True)
+            shutil.copytree(src_assets, dest_assets)
 
     items = "\n".join(
         f'<li><a class="card" href="/articles/{a["slug"]}.html">'

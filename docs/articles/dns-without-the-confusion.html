@@ -76,6 +76,8 @@ article pre code{background:none;padding:0;font-size:1em}
 
 article blockquote{margin:1.4em 0;padding:.2em 1.2em;border-left:3px solid var(--brand);color:var(--muted)}
 
+article img{max-width:100%;height:auto;display:block;margin:1.6em 0;border:1px solid var(--line);border-radius:10px}
+
 article table{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.95rem}
 article th,article td{border:1px solid var(--line);padding:.5em .7em;text-align:left}
 article th{background:var(--brand-soft);font-family:"Noto Serif",Georgia,serif}
@@ -122,7 +124,7 @@ footer.site a:hover{color:var(--brand)}
 <article>
 <a class="back" href="/">&larr; All articles</a>
 <h1>DNS without the confusion</h1>
-<p class="meta">23 September 2026<span class="dot">&middot;</span>10 min read</p>
+<p class="meta">23 September 2026<span class="dot">&middot;</span>11 min read</p>
 <p>A domain name passes through four separate businesses before a browser gets a single byte back: the registrar, the DNS provider, the host, and often a CDN in front of the host. Most of the time all four are the same company, so nobody notices the seams. On the day one of them fails, the seams are the whole incident.</p>
 <p>Here is what happens, in order, between typing a name and getting an answer, the three record types that carry almost everything on the web, why a DNS change never really "propagates", and five outages where each of those pieces broke in public. The commands in this article are runnable scripts in <a href="https://github.com/InBrief-Inc/under-the-hood/tree/main/week-01-dns/scripts"><code>scripts/</code></a>, not just examples to read.</p>
 <h2>Four companies, one page</h2>
@@ -130,6 +132,7 @@ footer.site a:hover{color:var(--brand)}
 <p>A DNS provider runs the nameservers that answer "where is this name?" with an address. It is often the same company as the registrar, which is why people merge the two in their heads, but it is a separate service you can move on its own.</p>
 <p>The host owns the machine that address points at. A CDN, if there is one, sits in front of the host: browsers talk to the CDN, and the CDN talks to your origin.</p>
 <p>Four contracts, four ways to be down. The registrar lapses and the name stops resolving anywhere within a day or two. The nameservers go down and nobody can find the address, while the server behind it stays perfectly healthy. The host goes down and the name resolves but the connection fails. The CDN goes down and the name resolves, the edge answers with a 5xx, and the origin sits idle the whole time. A server-is-up check only ever covers one of those four.</p>
+<p><img alt="Four contracts: registrar records ownership, the DNS provider answers with an address, the host owns the machine, a CDN sits in front" src="/assets/dns-without-the-confusion/four-companies.png" /></p>
 <h2>What actually happens when you type a name</h2>
 <p>The library call inside your application is a stub resolver. It sends one question to whatever address is configured, usually your router or ISP, with the "recursion desired" bit set: do the whole job, I'll wait. It has no idea where the root servers are, and it doesn't need to.</p>
 <p>The recursive resolver on the other end does the walking, and it works iteratively: every server it asks either answers or points somewhere closer. A cold lookup for <code>yourapp.com</code> looks like this:</p>
@@ -151,6 +154,7 @@ ns1      → resolver:    &quot;203.0.113.7, keep it 300 seconds&quot; (authorit
 <h2>Caches, leases, and the myth of propagation</h2>
 <p>Nothing gets pushed when you change a DNS record. Your nameserver doesn't notify anyone; every resolver that already asked is holding a lease, in seconds, called the TTL, and it will keep serving that answer until the lease runs out.</p>
 <p>Say the TTL is 3,600 seconds and you change the record at noon. A resolver that asked at 11:59 keeps the old answer until 12:59. One that asked at 11:10 keeps it until 12:10. One that has never asked gets the new answer immediately. Three resolvers, three different answers, at the same instant, and none of them are wrong. That is why "wait for it to propagate" is the wrong mental model: nothing is spreading anywhere. You are waiting for leases to expire, and every lease started at a different time.</p>
+<p><img alt="One record change at noon produces three different answers, because each resolver's lease started at a different time" src="/assets/dns-without-the-confusion/ttl-lease.png" /></p>
 <p>Resolvers cache the absence of an answer too. A name that doesn't exist gets <code>NXDOMAIN</code>; one that exists but lacks the record type you asked for gets an empty <code>NODATA</code>. Both get cached, for a length set by the last field of the zone's <code>SOA</code> record, repurposed for exactly this by RFC 2308. Ask for a record a minute before you create it, and the resolver can hold "does not exist" for the whole of that negative TTL. In practice this is usually your own health check asking first.</p>
 <p>The runbook for a migration has a clock built into it, and the step almost everyone skips is the last one:</p>
 <ol>
@@ -173,6 +177,7 @@ ns1      → resolver:    &quot;203.0.113.7, keep it 300 seconds&quot; (authorit
 <h2>Five times this broke, in public</h2>
 <p><strong>Dyn, 21 October 2016.</strong> A DDoS attack hit Dyn's authoritative nameservers, and Twitter, GitHub, and Reddit went offline for much of a day while every one of their own servers stayed healthy. Nothing was wrong with the sites; the phone book stopped answering. It's the reason "use two DNS providers" became standard advice: your authoritative side is a specific, nameable target, and it can be worth attacking on its own.</p>
 <p><strong>Route 53, 22 October 2019.</strong> AWS's authoritative DNS came under a DDoS for the better part of a working day. The mitigation dropped attack traffic and, by AWS's own account, caught some legitimate queries in the process, so lookups for names like S3 failed intermittently. The root servers were fine, the <code>.com</code> servers were fine, and any zone hosted elsewhere was fine. Only the lookups that walked through that one authoritative hop failed, and only some of the time, which is close to the worst kind of failure to reproduce: a retry often just worked.</p>
+<p><img alt="The referral chain for the Route 53 outage: root points to the .com servers, which point to Route 53, which sometimes answered nothing" src="/assets/dns-without-the-confusion/route53-2019.png" /></p>
 <p><strong>Azure DNS, 1 April 2021.</strong> For 39 minutes, some resolvers hitting Azure's DNS service got timeouts under load rather than a clean answer or a clean failure. A timeout is its own failure class, distinct from "no such name" and distinct from a refused connection, and it points a debugging session in a different direction than either of those.</p>
 <p><strong>Slack, 30 September 2021.</strong> Slack was finishing a DNSSEC rollout and published the DS record for its main domain at the registry, the record that tells validating resolvers to start checking signatures. Because of how the zone's wildcard records interacted with the signed proof of non-existence, some resolvers began reporting that real subdomains didn't exist. Slack pulled the DS record back quickly. That fixed nothing for any resolver that had already fetched it: a DS record lives in the parent zone with a TTL measured in hours, and every resolver holding it kept failing until its own lease ran out or someone flushed it by hand. The rollback was correct. The caches didn't care.</p>
 <p><strong>Facebook, 4 October 2021.</strong> A backbone configuration change during routine maintenance withdrew the routes to Facebook's own network, including the routers announcing its authoritative DNS servers. With no path to those addresses, resolvers everywhere got no response at all, which most software reports as a hang rather than a clean error, and Facebook, Instagram, and WhatsApp were unreachable for about six hours. The DNS protocol never broke; nothing was misconfigured in a zone file. The nameservers themselves simply stopped being reachable, which is a reminder that your authoritative DNS depends on the same network as everything else you run, including, in that case, the badge readers the on-site engineers needed to get into the building.</p>

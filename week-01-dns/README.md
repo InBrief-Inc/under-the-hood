@@ -19,6 +19,8 @@ The host owns the machine that address points at. A CDN, if there is one, sits i
 
 Four contracts, four ways to be down. The registrar lapses and the name stops resolving anywhere within a day or two. The nameservers go down and nobody can find the address, while the server behind it stays perfectly healthy. The host goes down and the name resolves but the connection fails. The CDN goes down and the name resolves, the edge answers with a 5xx, and the origin sits idle the whole time. A server-is-up check only ever covers one of those four.
 
+![Four contracts: registrar records ownership, the DNS provider answers with an address, the host owns the machine, a CDN sits in front](/assets/dns-without-the-confusion/four-companies.png)
+
 ## What actually happens when you type a name
 
 The library call inside your application is a stub resolver. It sends one question to whatever address is configured, usually your router or ISP, with the "recursion desired" bit set: do the whole job, I'll wait. It has no idea where the root servers are, and it doesn't need to.
@@ -56,6 +58,8 @@ Nothing gets pushed when you change a DNS record. Your nameserver doesn't notify
 
 Say the TTL is 3,600 seconds and you change the record at noon. A resolver that asked at 11:59 keeps the old answer until 12:59. One that asked at 11:10 keeps it until 12:10. One that has never asked gets the new answer immediately. Three resolvers, three different answers, at the same instant, and none of them are wrong. That is why "wait for it to propagate" is the wrong mental model: nothing is spreading anywhere. You are waiting for leases to expire, and every lease started at a different time.
 
+![One record change at noon produces three different answers, because each resolver's lease started at a different time](/assets/dns-without-the-confusion/ttl-lease.png)
+
 Resolvers cache the absence of an answer too. A name that doesn't exist gets `NXDOMAIN`; one that exists but lacks the record type you asked for gets an empty `NODATA`. Both get cached, for a length set by the last field of the zone's `SOA` record, repurposed for exactly this by RFC 2308. Ask for a record a minute before you create it, and the resolver can hold "does not exist" for the whole of that negative TTL. In practice this is usually your own health check asking first.
 
 The runbook for a migration has a clock built into it, and the step almost everyone skips is the last one:
@@ -84,6 +88,8 @@ Each takes a domain as its only argument, defaults to `example.com` if you don't
 **Dyn, 21 October 2016.** A DDoS attack hit Dyn's authoritative nameservers, and Twitter, GitHub, and Reddit went offline for much of a day while every one of their own servers stayed healthy. Nothing was wrong with the sites; the phone book stopped answering. It's the reason "use two DNS providers" became standard advice: your authoritative side is a specific, nameable target, and it can be worth attacking on its own.
 
 **Route 53, 22 October 2019.** AWS's authoritative DNS came under a DDoS for the better part of a working day. The mitigation dropped attack traffic and, by AWS's own account, caught some legitimate queries in the process, so lookups for names like S3 failed intermittently. The root servers were fine, the `.com` servers were fine, and any zone hosted elsewhere was fine. Only the lookups that walked through that one authoritative hop failed, and only some of the time, which is close to the worst kind of failure to reproduce: a retry often just worked.
+
+![The referral chain for the Route 53 outage: root points to the .com servers, which point to Route 53, which sometimes answered nothing](/assets/dns-without-the-confusion/route53-2019.png)
 
 **Azure DNS, 1 April 2021.** For 39 minutes, some resolvers hitting Azure's DNS service got timeouts under load rather than a clean answer or a clean failure. A timeout is its own failure class, distinct from "no such name" and distinct from a refused connection, and it points a debugging session in a different direction than either of those.
 
