@@ -10,6 +10,10 @@ scripts that do exactly what the article describes. No installs beyond
 
 - [`week-01-dns/`](week-01-dns/) — DNS: resolution, record types, TTLs and
   caching, and five real outages that show where each piece breaks.
+- [`week-02-http/`](week-02-http/) — HTTP: one page load as six clocks, what
+  requests and responses contain, status codes that mislead, the headers that
+  matter, HTTP/2 and HTTP/3, retries and idempotency, and five real outages
+  that show where each piece breaks.
 
 The same articles are published, one HTML page each, at
 [blog.inbrief.sh](https://blog.inbrief.sh).
