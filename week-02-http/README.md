@@ -37,7 +37,7 @@ download      0 ms   the rest of the body
 total       248 ms
 ```
 
-On this run the two handshakes cost 165 ms, more than twice the 80 ms the server needed. `wait` is stages 4 to 6 added together, and curl cannot split them. (At the time of this run `example.com` was answered from a CDN's cache, so its `wait` measures an edge, not an origin.) Splitting the server's share takes the server's help: an application can report its own clocks in a `Server-Timing` response header, and browsers show them in their developer tools.
+On this run the two handshakes cost 165 ms, more than twice the 80 ms between sending the request and the first byte coming back. That 80 ms is `wait`. It is stages 4 to 6 added together plus one more trip across the network, and curl cannot split them. (At the time of this run `example.com` was answered from a CDN's cache, so its `wait` measures an edge, not an origin.) Splitting the server's share takes the server's help: an application can report its own clocks in a `Server-Timing` response header, and browsers show them in their developer tools.
 
 The TLS line is where the version shows. In twelve runs against `example.com`, the fastest TCP connect took 64 ms, which is one round trip. The fastest TLS 1.3 handshake took 72 ms and the fastest TLS 1.2 handshake took 124 ms, about one round trip and about two. The script passes anything after the URL on to curl, so `01-timing-breakdown.sh https://example.com --tlsv1.2 --tls-max 1.2` forces the older version.
 
